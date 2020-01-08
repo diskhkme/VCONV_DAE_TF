@@ -13,14 +13,13 @@ import matplotlib.pyplot as plt
 
 from DataGenerator import DataGenerator
 from Model import build_model
+import GlobalParam as _g
 
-def VisualizeVolxe(data, threshold):
-    if(len(data.shape) > 3):
-        data = np.squeeze(data, axis=0)
-        data = np.squeeze(data, axis=3)
+def PrintVoxel(data, filepath):
+    data = data.reshape((_g.INPUT_VOXEL_SIZE[0]*_g.INPUT_VOXEL_SIZE[1], _g.INPUT_VOXEL_SIZE[2]))
+    np.savetxt(filepath,data,delimiter=',')
 
-    data = data > threshold
-
+def VisualizeVolxel(data):
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     # ax.set_aspect('equal')
@@ -29,19 +28,28 @@ def VisualizeVolxe(data, threshold):
 
     plt.show()
 
+def SqueezeAndBinarize(data, threshold):
+    if(len(data.shape) > 3):
+        data = np.squeeze(data, axis=0)
+        data = np.squeeze(data, axis=3)
+
+    data = data > threshold
+
+    return data
+
 def ConstructModel():
     K.clear_session()
 
-    model = build_model(input_voxel_size=[30,30,30],
-                        augmenting_dropout_rate=.5,
-                        conv_num_filters=[64, 256, 256, 64, 1],
-                        conv_filter_sizes=[9,4, 5, 6],
-                        conv_strides=[3,2, 2, 3],
-                        desc_dims=[6912,6912])
+    model = build_model(input_voxel_size=_g.INPUT_VOXEL_SIZE,
+                        augmenting_dropout_rate=_g.AUGMENTED_DROPOUT_RATE,
+                        conv_num_filters=_g.CONV_NUM_FILTERS,
+                        conv_filter_sizes=_g.CONV_FILTER_SIZES,
+                        conv_strides=_g.CONV_STRIDES,
+                        desc_dims=_g.DESC_DIMS)
 
-    model.load_weights('CKPT/Epoch_10.h5')
+    model.load_weights(_g.TRAIN_OUTPUT_FOLDER + _g.WEIGHT_FILE_NAME)
 
-    sgd = optimizers.SGD(lr=0.1, decay=1e-6, momentum=0.9)
+    sgd = optimizers.SGD(lr=_g.LEARNING_RATE, decay=_g.DECAY, momentum=_g.MOMENTUM)
 
     model.compile(loss='binary_crossentropy',optimizer=sgd)
 
@@ -55,7 +63,7 @@ def MakePrediction(model, input):
 def LoadSingleInput(filename):
     #csv_data = np.loadtxt('Data/ModelNet30/bathtub_te/bathtub_te_1.csv'delimiter=',')
     csv_data = np.loadtxt(filename, delimiter = ',')
-    data = np.reshape(csv_data, (30,30,30))
+    data = np.reshape(csv_data, (_g.INPUT_VOXEL_SIZE[0], _g.INPUT_VOXEL_SIZE[1],_g.INPUT_VOXEL_SIZE[2]))
     data = np.expand_dims(data, axis=0)
     data = np.expand_dims(data, axis=4)
     return data
@@ -64,11 +72,17 @@ def main(argv):
     model = ConstructModel()
     print(model.summary())
 
-    input = LoadSingleInput('Data/ModelNet30/bathtub_te/bathtub_te_1.csv')
+    input = LoadSingleInput(_g.PREDICTION_FILE_PATH)
     output = MakePrediction(model, input)
 
-    VisualizeVolxe(input, 0.5)
-    VisualizeVolxe(output, 0.5)
+    input = SqueezeAndBinarize(input, _g.BINARIZE_THRESHOLD)
+    output = SqueezeAndBinarize(output, _g.BINARIZE_THRESHOLD)
+
+
+    VisualizeVolxel(input)
+    VisualizeVolxel(output)
+    # PrintVoxel(input,'bathtub_te_1_input.csv')
+    # PrintVoxel(output, 'bathtub_te_1_output.csv')
 
 if __name__== '__main__':
     main(sys.argv)

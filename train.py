@@ -10,37 +10,38 @@ import keras.backend as K
 
 from DataGenerator import DataGenerator
 from Model import build_model
+import GlobalParam as _g
 
 def ConstructModel():
     K.clear_session()
 
-    model = build_model(input_voxel_size=[30,30,30],
-                        augmenting_dropout_rate=.5,
-                        conv_num_filters=[64, 256, 256, 64, 1],
-                        conv_filter_sizes=[9,4, 5, 6],
-                        conv_strides=[3,2, 2, 3],
-                        desc_dims=[6912,6912])
+    model = build_model(input_voxel_size=_g.INPUT_VOXEL_SIZE,
+                        augmenting_dropout_rate=_g.AUGMENTED_DROPOUT_RATE,
+                        conv_num_filters=_g.CONV_NUM_FILTERS,
+                        conv_filter_sizes=_g.CONV_FILTER_SIZES,
+                        conv_strides=_g.CONV_STRIDES,
+                        desc_dims=_g.DESC_DIMS)
 
-    sgd = optimizers.SGD(lr=0.1, decay=1e-6, momentum=0.9)
+    sgd = optimizers.SGD(lr=_g.LEARNING_RATE, decay=_g.DECAY, momentum=_g.MOMENTUM)
 
     model.compile(loss='binary_crossentropy',optimizer=sgd)
 
     return model
 
 def GenerateDataset():
-    train_generator = DataGenerator('Data/ModelNet30/train_files.txt',
-                                   batch_size=32, dim=(30, 30, 30),
-                                   n_classes=31, shuffle=True)
-    val_generator = DataGenerator('Data/ModelNet30/val_files.txt',
-                                   batch_size=32, dim=(30, 30, 30),
-                                   n_classes=31, shuffle=True)
+    train_generator = DataGenerator(_g.TRAIN_FILE_PATH,
+                                   batch_size=_g.BATCH, dim=_g.INPUT_VOXEL_SIZE,
+                                   n_classes=_g.NUM_CLASS, shuffle=True)
+    val_generator = DataGenerator(_g.VAL_FILE_PATH,
+                                   batch_size=_g.BATCH, dim=_g.INPUT_VOXEL_SIZE,
+                                   n_classes=_g.NUM_CLASS, shuffle=True)
 
     print("Number of images in the training dataset:/t{:>6}".format(train_generator.get_dataset_siez()))
 
     return train_generator, val_generator
 
 def Train(model, train_generator, val_generator):
-    model_checkpoint = ModelCheckpoint(filepath='CKPT/' + 'Epoch_{epoch:02d}.h5',
+    model_checkpoint = ModelCheckpoint(filepath=_g.TRAIN_OUTPUT_FOLDER + 'Epoch_{epoch:02d}.h5',
                                        monitor='val_loss',
                                        verbose=1,
                                        save_best_only=True,
@@ -48,7 +49,7 @@ def Train(model, train_generator, val_generator):
                                        mode='auto',
                                        period=1)
 
-    csv_logger = CSVLogger(filename='CKPT/' + 'VAE_Training_Log.csv',
+    csv_logger = CSVLogger(filename=_g.TRAIN_OUTPUT_FOLDER + 'VAE_Training_Log.csv',
                            separator=',',
                            append=True)
 
@@ -62,7 +63,7 @@ def Train(model, train_generator, val_generator):
     model.fit_generator(generator=train_generator,
                         use_multiprocessing=True,
                         workers=6,
-                        epochs=10,
+                        epochs=_g.NUM_EPOCHS,
                         callbacks=callbacks,
                         validation_data=val_generator)
 
