@@ -33,5 +33,5 @@ VAL_FILE_PATH = DATA_SOURCE_ROOT + 'val_files.txt'
 
 # Prediction--------------------------------------------------
 WEIGHT_FILE_NAME = 'Epoch_04.h5'
-PREDICTION_FILE_PATH = 'Data/KNU_DownSampled/Data/COMP13920_Before.csv'
+PREDICTION_FILE_PATH = 'Data/KNU_DownSampled/Data/backdoor4_After.csv'
 BINARIZE_THRESHOLD = 0.5
