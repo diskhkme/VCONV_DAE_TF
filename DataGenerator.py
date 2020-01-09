@@ -2,11 +2,13 @@
 import numpy as np
 import keras
 import csv
+# import cv2
+import h5py
 
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
     def __init__(self, filename, batch_size=32, dim=(30,30,30),n_channels=1,
-                 n_classes=31, shuffle=True):
+                 n_classes=31, shuffle=True, mode='KNU_Simplification', resizeTo=(30,30,30)):
         'Initialization'
         self.dim = dim
         self.batch_size = batch_size
@@ -19,6 +21,8 @@ class DataGenerator(keras.utils.Sequence):
         self.n_classes = n_classes
         self.shuffle = shuffle
         self.on_epoch_end()
+        self.mode = mode
+        self.resizeTo = resizeTo
 
     def get_dataset_siez(self):
         return len(self.list_IDs)
@@ -31,8 +35,13 @@ class DataGenerator(keras.utils.Sequence):
 
         for line in rdr:
             token = line[0].split(' ')
-            IDs.append(token[1])
-            labels[token[1]] = int(token[0])
+            if len(token) > 2:
+                tk = token[1]+ ' ' + token[2]
+            else:
+                tk = token[1]
+
+            IDs.append(tk)
+            labels[tk] = int(token[0])
 
         return labels,IDs
 
@@ -62,18 +71,40 @@ class DataGenerator(keras.utils.Sequence):
     def __data_generation(self, list_IDs_temp):
         'Generates data containing batch_size samples' # X : (n_samples, *dim, n_channels)
         # Initialization
-        X = np.empty((self.batch_size, *self.dim, self.n_channels))
+        X = np.empty((self.batch_size, *self.resizeTo, self.n_channels))
         y = np.empty((self.batch_size), dtype=int)
 
         # Generate data
         for i, ID in enumerate(list_IDs_temp):
             # Store sample
-            # TODO: 폴더 구조 수정 필요
-            csv_data = np.loadtxt('Data/ModelNet30/'+ID, delimiter=',')
-            data = np.reshape(csv_data,self.dim)
-            X[i,] = np.expand_dims(data,axis=3)
+            if self.mode == 'ModelNet30':
+                csv_data = np.loadtxt('Data/ModelNet30/'+ID, delimiter=',')
+                data = np.reshape(csv_data,self.dim)
+            elif self.mode == 'KNU_Simplification':
+                csv_data = self.KNULoadTxt(ID)
+                data = np.reshape(csv_data, self.dim)
+            elif self.mode == 'KNU_CSV_Converted':
+                csv_data = np.loadtxt(ID, delimiter=',')
+                data = np.reshape(csv_data, self.dim)
 
+            X[i,] = np.expand_dims(data, axis=3)
             # Store class
             y[i] = self.labels[ID]
 
         return X#, keras.utils.to_categorical(y, num_classes=self.n_classes)
+
+    def KNULoadTxt(self,filename):
+        f = open(filename, 'r')
+        lines = f.readlines()
+        f.close()
+
+        data = lines[2].split(',')
+        data = list(map(int, data))
+        data = np.array(data)
+
+        return data
+
+    # def createHDF5Dataset(self, filePath='dataset.h5'):
+    #     datasetSize = len(self.labels)
+    #     hdf5Dataset = h5py.File(filePath, 'w')
+    #     hdf5Dataset.create_dataset(name='Voxel', shape=self.dim, dtype=int)

@@ -1,15 +1,24 @@
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import matplotlib.pyplot as plt
-N1 = 10
-N2 = 10
-N3 = 10
-ma = np.random.choice([0,1], size=(N1,N2,N3), p=[0.99, 0.01])
+import csv
+
+
+file = 'D:/Test_Models/VAE/Data/1.txt'
+f = open(file,'r')
+lines = f.readlines()
+f.close()
+
+data = lines[2].split(',')
+data = list(map(int,data))
+data = np.array(data)
+
+reshapedData = np.reshape(data, [128,128,128])
 
 fig = plt.figure()
 ax = fig.gca(projection='3d')
 #ax.set_aspect('equal')
 
-ax.voxels(ma, edgecolor="k")
+ax.voxels(reshapedData, edgecolor="k")
 
 plt.show()

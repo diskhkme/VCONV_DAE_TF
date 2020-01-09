@@ -10,6 +10,7 @@ import keras.backend as K
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
+import cv2
 
 from DataGenerator import DataGenerator
 from Model import build_model
@@ -33,6 +34,7 @@ def SqueezeAndBinarize(data, threshold):
         data = np.squeeze(data, axis=0)
         data = np.squeeze(data, axis=3)
 
+    # cv2.imshow('',data[:,:,5])
     data = data > threshold
 
     return data
