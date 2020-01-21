@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import cv2
 
 from DataGenerator import DataGenerator
-from Model import build_model
+from Model import build_model_30, build_model_64, build_model_128
 import GlobalParam as _g
 
 def PrintVoxel(data, filepath):
@@ -42,12 +42,30 @@ def SqueezeAndBinarize(data, threshold):
 def ConstructModel():
     K.clear_session()
 
-    model = build_model(input_voxel_size=_g.INPUT_VOXEL_SIZE,
-                        augmenting_dropout_rate=_g.AUGMENTED_DROPOUT_RATE,
-                        conv_num_filters=_g.CONV_NUM_FILTERS,
-                        conv_filter_sizes=_g.CONV_FILTER_SIZES,
-                        conv_strides=_g.CONV_STRIDES,
-                        desc_dims=_g.DESC_DIMS)
+    if _g.TYPE == '30':
+        # ModelNet30
+        model = build_model_30(input_voxel_size=_g.INPUT_VOXEL_SIZE,
+                            augmenting_dropout_rate=_g.AUGMENTED_DROPOUT_RATE,
+                            conv_num_filters=_g.CONV_NUM_FILTERS,
+                            conv_filter_sizes=_g.CONV_FILTER_SIZES,
+                            conv_strides=_g.CONV_STRIDES,
+                            desc_dims=_g.DESC_DIMS)
+    elif _g.TYPE == '64':
+        # KNU_Simplification
+        model = build_model_64(input_voxel_size=_g.INPUT_VOXEL_SIZE,
+                            augmenting_dropout_rate=_g.AUGMENTED_DROPOUT_RATE,
+                            conv_num_filters=_g.CONV_NUM_FILTERS,
+                            conv_filter_sizes=_g.CONV_FILTER_SIZES,
+                            conv_strides=_g.CONV_STRIDES,
+                            desc_dims=_g.DESC_DIMS)
+    elif _g.TYPE == '128':
+        # KNU_Simplification
+        model = build_model_128(input_voxel_size=_g.INPUT_VOXEL_SIZE,
+                                   augmenting_dropout_rate=_g.AUGMENTED_DROPOUT_RATE,
+                                   conv_num_filters=_g.CONV_NUM_FILTERS,
+                                   conv_filter_sizes=_g.CONV_FILTER_SIZES,
+                                   conv_strides=_g.CONV_STRIDES,
+                                   desc_dims=_g.DESC_DIMS)
 
     model.load_weights(_g.TRAIN_OUTPUT_FOLDER + _g.WEIGHT_FILE_NAME)
 

@@ -9,28 +9,36 @@ from keras import losses
 import keras.backend as K
 
 from DataGenerator import DataGenerator
-from Model import build_model, build_deeper_model
+from Model import build_model_30, build_model_64, build_model_128
 import GlobalParam as _g
 
 def ConstructModel():
     K.clear_session()
 
-    if _g.TYPE == 'Reference':
+    if _g.TYPE == '30':
         # ModelNet30
-        model = build_model(input_voxel_size=_g.NETWORK_INPUT_SIZE,
+        model = build_model_30(input_voxel_size=_g.INPUT_VOXEL_SIZE,
                             augmenting_dropout_rate=_g.AUGMENTED_DROPOUT_RATE,
                             conv_num_filters=_g.CONV_NUM_FILTERS,
                             conv_filter_sizes=_g.CONV_FILTER_SIZES,
                             conv_strides=_g.CONV_STRIDES,
                             desc_dims=_g.DESC_DIMS)
-    elif _g.TYPE == 'Deeper':
+    elif _g.TYPE == '64':
         # KNU_Simplification
-        model = build_deeper_model(input_voxel_size=_g.NETWORK_INPUT_SIZE,
+        model = build_model_64(input_voxel_size=_g.INPUT_VOXEL_SIZE,
                             augmenting_dropout_rate=_g.AUGMENTED_DROPOUT_RATE,
                             conv_num_filters=_g.CONV_NUM_FILTERS,
                             conv_filter_sizes=_g.CONV_FILTER_SIZES,
                             conv_strides=_g.CONV_STRIDES,
                             desc_dims=_g.DESC_DIMS)
+    elif _g.TYPE == '128':
+        # KNU_Simplification
+        model = build_model_128(input_voxel_size=_g.INPUT_VOXEL_SIZE,
+                                   augmenting_dropout_rate=_g.AUGMENTED_DROPOUT_RATE,
+                                   conv_num_filters=_g.CONV_NUM_FILTERS,
+                                   conv_filter_sizes=_g.CONV_FILTER_SIZES,
+                                   conv_strides=_g.CONV_STRIDES,
+                                   desc_dims=_g.DESC_DIMS)
 
     sgd = optimizers.SGD(lr=_g.LEARNING_RATE, decay=_g.DECAY, momentum=_g.MOMENTUM)
 
@@ -42,20 +50,18 @@ def GenerateDataset():
     train_generator = DataGenerator(_g.TRAIN_FILE_PATH,
                                    batch_size=_g.BATCH, dim=_g.INPUT_VOXEL_SIZE,
                                    n_classes=_g.NUM_CLASS, shuffle=True,
-                                   mode='KNU_CSV_Converted',
-                                   resizeTo=_g.NETWORK_INPUT_SIZE )
+                                   mode='KNU_CSV_Converted')
     val_generator = DataGenerator(_g.VAL_FILE_PATH,
                                    batch_size=_g.BATCH, dim=_g.INPUT_VOXEL_SIZE,
                                    n_classes=_g.NUM_CLASS, shuffle=True,
-                                   mode='KNU_CSV_Converted',
-                                   resizeTo=_g.NETWORK_INPUT_SIZE )
+                                   mode='KNU_CSV_Converted')
 
     print("Number of images in the training dataset:/t{:>6}".format(train_generator.get_dataset_siez()))
 
     return train_generator, val_generator
 
 def Train(model, train_generator, val_generator):
-    model_checkpoint = ModelCheckpoint(filepath=_g.TRAIN_OUTPUT_FOLDER + 'Epoch_{epoch:02d}.h5',
+    model_checkpoint = ModelCheckpoint(filepath=_g.TRAIN_OUTPUT_FOLDER + 'Epoch_{epoch:02d}_{val_loss:04f}.h5',
                                        monitor='val_loss',
                                        verbose=1,
                                        save_best_only=True,
@@ -76,7 +82,7 @@ def Train(model, train_generator, val_generator):
 
     model.fit_generator(generator=train_generator,
                         use_multiprocessing=True,
-                        workers=2,
+                        workers=4,
                         epochs=_g.NUM_EPOCHS,
                         callbacks=callbacks,
                         validation_data=val_generator)

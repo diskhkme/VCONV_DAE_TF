@@ -2,12 +2,12 @@ import os, sys
 import numpy as np
 from scipy.ndimage import zoom
 
-ROOTPATH='D:/Libs/Keras/VCONV_DAE/VCONV_DAE_TF/Data/KNU_Simplification/Data/tmp/'
-OUTPATH = 'D:/Libs/Keras/VCONV_DAE/VCONV_DAE_TF/Data/KNU_DownSampled/Data/'
-EXTENSION = '.txt'
+ROOTPATH='D:/Libs/Keras/VCONV_DAE/VCONV_DAE_TF/Data/ModelNet30_CVT30/Data/'
+OUTPATH = 'D:/Libs/Keras/VCONV_DAE/VCONV_DAE_TF/Data/ModelNet30_CVT64/Data/'
+EXTENSION = '.csv'
 OUTEXTENSION = '.csv'
-INSIZE = [128,128,128]
-OUTSIZE = [30,30,30]
+INSIZE = [30,30,30]
+OUTSIZE = [64,64,64]
 
 def ListUpFiles(path,ext):
     files = os.listdir(path)
@@ -25,7 +25,8 @@ def ListUpFiles(path,ext):
 
 def Downsample(fileList):
     for file in fileList:
-        csv_data = KNULoadTxt(ROOTPATH+file+EXTENSION)
+        # csv_data = KNULoadTxt(ROOTPATH+file+EXTENSION)
+        csv_data = np.loadtxt(ROOTPATH + file + EXTENSION, delimiter=',')
         data = np.reshape(csv_data, INSIZE)
         rData = zoom(data, (OUTSIZE[0]/INSIZE[0],OUTSIZE[1]/INSIZE[1],OUTSIZE[2]/INSIZE[2]))
         assert(rData.shape[0] == OUTSIZE[0])

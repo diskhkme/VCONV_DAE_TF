@@ -8,7 +8,7 @@ import h5py
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
     def __init__(self, filename, batch_size=32, dim=(30,30,30),n_channels=1,
-                 n_classes=31, shuffle=True, mode='KNU_Simplification', resizeTo=(30,30,30)):
+                 n_classes=31, shuffle=True, mode='KNU_Simplification'):
         'Initialization'
         self.dim = dim
         self.batch_size = batch_size
@@ -22,7 +22,6 @@ class DataGenerator(keras.utils.Sequence):
         self.shuffle = shuffle
         self.on_epoch_end()
         self.mode = mode
-        self.resizeTo = resizeTo
 
     def get_dataset_siez(self):
         return len(self.list_IDs)
@@ -71,7 +70,7 @@ class DataGenerator(keras.utils.Sequence):
     def __data_generation(self, list_IDs_temp):
         'Generates data containing batch_size samples' # X : (n_samples, *dim, n_channels)
         # Initialization
-        X = np.empty((self.batch_size, *self.resizeTo, self.n_channels))
+        X = np.empty((self.batch_size, *self.dim, self.n_channels))
         y = np.empty((self.batch_size), dtype=int)
 
         # Generate data

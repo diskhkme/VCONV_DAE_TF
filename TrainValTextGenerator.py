@@ -1,7 +1,7 @@
 import os, sys
 import random
 
-ROOTPATH='D:/Libs/Keras/VCONV_DAE/VCONV_DAE_TF/Data/KNU_DownSampled/'
+ROOTPATH='D:/Libs/Keras/VCONV_DAE/VCONV_DAE_TF/Data/ModelNet30_CVT64/'
 DATAPATH = ROOTPATH + 'Data/'
 EXTENSION = '.csv'
 TRAINVAL_RATIO = 0.8
