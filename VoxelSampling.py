@@ -2,12 +2,12 @@ import os, sys
 import numpy as np
 from scipy.ndimage import zoom
 
-ROOTPATH='D:/Libs/Keras/VCONV_DAE/VCONV_DAE_TF/Data/ModelNet30_CVT30/Data/'
-OUTPATH = 'D:/Libs/Keras/VCONV_DAE/VCONV_DAE_TF/Data/ModelNet30_CVT64/Data/'
+ROOTPATH='D:/KHK/Lib/VCONV_DAE_TF/Data/ModelNet30_CVT64/Data/'
+OUTPATH = 'D:/KHK/Lib/VCONV_DAE_TF/Data/ModelNet30_CVT128/Data/'
 EXTENSION = '.csv'
 OUTEXTENSION = '.csv'
-INSIZE = [30,30,30]
-OUTSIZE = [64,64,64]
+INSIZE = [64,64,64]
+OUTSIZE = [128,128,128]
 
 def ListUpFiles(path,ext):
     files = os.listdir(path)

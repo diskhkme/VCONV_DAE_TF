@@ -202,3 +202,112 @@ def build_model_64(input_voxel_size=[64,64,64],
     model = Model(x, out)
 
     return model
+
+def build_model_64_deeper(input_voxel_size=[64,64,64],
+                augmenting_dropout_rate=.5,
+                conv_num_filters=[64, 256, 256, 512,512,256, 256, 64, 1],
+                conv_filter_sizes=[9,4,4, 4,4,5,5, 6],
+                conv_strides=[3,2,2, 2,2, 2,2, 3],
+                desc_dims=[131072,131072],
+                mode='train'):
+    # Input --------------------------------------------------------------------
+    x = Input(shape=(input_voxel_size[0], input_voxel_size[1], input_voxel_size[2], 1))
+
+    # Augmenting Dropout -------------------------------------------------------
+    drop1 = Dropout(augmenting_dropout_rate)(x)
+
+    # Encoding Layers ----------------------------------------------------------
+    cnf = 0
+    cfs = 0
+    conv1 = Conv3D(conv_num_filters[cnf],
+                   kernel_size=(conv_filter_sizes[cfs],conv_filter_sizes[cfs],conv_filter_sizes[cfs]),
+                   strides=(conv_strides[cfs],conv_strides[cfs],conv_strides[cfs]),
+                   data_format='channels_last',
+                   name='conv1')(drop1)
+    conv1 = Activation('relu')(conv1)
+
+    cnf = cnf+1
+    cfs = cfs+1
+    conv2 = Conv3D(conv_num_filters[cnf],
+                   kernel_size=(conv_filter_sizes[cfs],conv_filter_sizes[cfs],conv_filter_sizes[cfs]),
+                   strides=(conv_strides[cfs],conv_strides[cfs],conv_strides[cfs]),
+                   data_format='channels_last',
+                   name='conv2')(conv1)
+    conv2 = Activation('relu')(conv2)
+
+    cnf = cnf+1
+    cfs = cfs+1
+    conv3 = Conv3D(conv_num_filters[cnf],
+                   kernel_size=(conv_filter_sizes[cfs],conv_filter_sizes[cfs],conv_filter_sizes[cfs]),
+                   strides=(conv_strides[cfs],conv_strides[cfs],conv_strides[cfs]),
+                   data_format='channels_last',
+                   name='conv3')(conv2)
+    conv3 = Activation('relu')(conv3)
+
+    cnf = cnf+1
+    cfs = cfs+1
+    conv4 = Conv3D(conv_num_filters[cnf],
+                   kernel_size=(conv_filter_sizes[cfs],conv_filter_sizes[cfs],conv_filter_sizes[cfs]),
+                   strides=(conv_strides[cfs],conv_strides[cfs],conv_strides[cfs]),
+                   data_format='channels_last',
+                   name='conv4')(conv3)
+    conv4 = Activation('relu')(conv4)
+
+    reshape1 = Reshape((desc_dims[0],), name='reshape1')(conv4)
+    dense1 = Dense(desc_dims[1])(reshape1)
+
+    # Bottleneck(?) Layer -------------------------------------------------------
+    bottleneck = Activation('relu', name='bottleneck')(dense1)
+    # ---------------------------------------------------------------------------
+
+    drop2 = Dropout(augmenting_dropout_rate)(bottleneck)
+
+    cnf = cnf + 1
+    reshape2 = Reshape((conv4.shape[1],conv4.shape[2],conv4.shape[3],conv_num_filters[cnf]), name='reshape2')(drop2)
+
+
+    # Decoding Layers ----------------------------------------------------------
+    cnf = cnf+1
+    cfs = cfs+1
+    deconv1 = Conv3DTranspose(conv_num_filters[cnf],
+                              kernel_size=(conv_filter_sizes[cfs],conv_filter_sizes[cfs],conv_filter_sizes[cfs]),
+                              strides=(conv_strides[cfs],conv_strides[cfs],conv_strides[cfs]),
+                              data_format='channels_last',
+                              name='deconv1')(reshape2)
+    deconv1 = Activation('relu')(deconv1)
+
+    cnf = cnf+1
+    cfs = cfs+1
+    deconv2 = Conv3DTranspose(conv_num_filters[cnf],
+                              kernel_size=(conv_filter_sizes[cfs],conv_filter_sizes[cfs],conv_filter_sizes[cfs]),
+                              strides=(conv_strides[cfs],conv_strides[cfs],conv_strides[cfs]),
+                              data_format='channels_last',
+                              name='deconv2')(deconv1)
+    deconv2 = Activation('relu')(deconv2)
+
+    cnf = cnf+1
+    cfs = cfs+1
+    deconv3 = Conv3DTranspose(conv_num_filters[cnf],
+                              kernel_size=(conv_filter_sizes[cfs], conv_filter_sizes[cfs], conv_filter_sizes[cfs]),
+                              strides=(conv_strides[cfs], conv_strides[cfs], conv_strides[cfs]),
+                              data_format='channels_last',
+                              name='deconv3')(deconv2)
+    deconv3 = Activation('relu')(deconv3)
+
+    cnf = cnf+1
+    cfs = cfs+1
+    deconv4 = Conv3DTranspose(conv_num_filters[cnf],
+                              kernel_size=(conv_filter_sizes[cfs], conv_filter_sizes[cfs], conv_filter_sizes[cfs]),
+                              strides=(conv_strides[cfs], conv_strides[cfs], conv_strides[cfs]),
+                              data_format='channels_last',
+                              name='deconv4')(deconv3)
+
+
+    reshape3 = Reshape((input_voxel_size[0], input_voxel_size[1], input_voxel_size[2], 1))(deconv4)
+
+    # Output -------------------------------------------------------------------
+    out = Activation('sigmoid', name='output')(reshape3)
+
+    model = Model(x, out)
+
+    return model
