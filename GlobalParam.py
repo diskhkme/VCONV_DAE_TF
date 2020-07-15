@@ -45,17 +45,23 @@ LOAD_WEIGHT_PATH = 'CKPT/ModelNet30_CVT64_New/Epoch_03_0.122206.h5'
 
 
 # Training Param
+# Mode
+# 'KNU_Simplification' : KNU txt 파일을 그대로 사용하는 경우
+# 'KNU_CSV_Converted' : KNU txt 파일을 csv로 변환하여 사용하는 경우
+# 'ModelNet30' : ModelNet30 csv 파일 사용하는 경우
+
+MODE = 'KNU_Simplification'
 LEARNING_RATE=0.1
 DECAY=1e-6
 MOMENTUM=0.9
-BATCH=128
+BATCH=64
 NUM_CLASS=31
-NUM_EPOCHS = 200
+NUM_EPOCHS = 30
+TRAIN_OUTPUT_FOLDER = 'CKPT/ModelNet30_CVT64/'
 # Training Data Param
-TRAIN_OUTPUT_FOLDER = 'CKPT/KNU_64/'
-DATA_SOURCE_ROOT = 'Data/KNU_64/'
-TRAIN_HDF_FILE_PATH = DATA_SOURCE_ROOT + 'train_dataset.h5'
-VAL_HDF_FILE_PATH = DATA_SOURCE_ROOT + 'val_dataset.h5'
+DATA_SOURCE_ROOT = 'Data/ModelNet30_CVT64/'
+TRAIN_FILE_PATH = DATA_SOURCE_ROOT + 'train_files.txt'
+VAL_FILE_PATH = DATA_SOURCE_ROOT + 'val_files.txt'
 
 # Prediction--------------------------------------------------
 WEIGHT_FILE_NAME = 'Epoch_95_0.180470.h5'

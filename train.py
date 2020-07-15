@@ -64,15 +64,16 @@ def GenerateDataset():
     train_generator = DataGenerator(
                                    batch_size=_g.BATCH, dim=_g.INPUT_VOXEL_SIZE,
                                    n_classes=_g.NUM_CLASS, shuffle=True,
-                                   mode='KNU_CSV_Converted',
+                                   mode=_g.MODE,
                                    load_data_into_memory = _g.LOAD_ON_MEMORY,
                                    load_HDF_path = _g.DATA_SOURCE_ROOT + 'train_dataset.h5')
     val_generator = DataGenerator(
                                    batch_size=_g.BATCH, dim=_g.INPUT_VOXEL_SIZE,
                                    n_classes=_g.NUM_CLASS, shuffle=True,
-                                   mode='KNU_CSV_Converted',
+                                   mode=_g.MODE,
                                    load_data_into_memory=_g.LOAD_ON_MEMORY,
                                    load_HDF_path=_g.DATA_SOURCE_ROOT + 'val_dataset.h5')
+
 
     print("Number of images in the training dataset:/t{:>6}".format(train_generator.get_dataset_siez()))
 
